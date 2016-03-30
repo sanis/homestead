@@ -39,7 +39,7 @@ block="server {
     client_max_body_size 100m;
 
     # DEV
-    location ~ ^/(app_dev|app_test|config)\.php(/|\$) {
+    location ~ ^/(app_dev|app_test|config)\.php(/|$) {
         fastcgi_split_path_info ^(.+\.php)(/.+)\$;
         fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
         fastcgi_index app_dev.php;
