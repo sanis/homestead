@@ -20,12 +20,12 @@ block="server {
     server_name $1;
     root \"$2\";
 
-    index index.html index.htm index.php app_dev.php;
+    index index.html index.htm index.php app_dev.php app.php;
 
     charset utf-8;
 
     location / {
-        try_files \$uri \$uri/ /app_dev.php?\$query_string;
+        try_files \$uri /app.php\$is_args\$args;
     }
 
     location = /favicon.ico { access_log off; log_not_found off; }
