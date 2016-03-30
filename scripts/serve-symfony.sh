@@ -25,7 +25,7 @@ block="server {
     charset utf-8;
 
     location / {
-        try_files \$uri /app.php\$is_args\$args;
+        try_files \$uri /app_dev.php\$is_args\$args;
     }
 
     location = /favicon.ico { access_log off; log_not_found off; }
