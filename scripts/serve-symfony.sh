@@ -40,7 +40,7 @@ block="server {
 
     # DEV
     location ~ ^/(app_dev|app_test|config)\.php(/|$) {
-        fastcgi_split_path_info ^(.+\.php)(/.+)\$;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
         fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
         fastcgi_index app_dev.php;
         include fastcgi_params;
@@ -56,7 +56,7 @@ block="server {
 
     # PROD
     location ~ ^/app\.php(/|$) {
-        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
         fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
         fastcgi_index app.php;
         include fastcgi_params;
