@@ -108,6 +108,16 @@ class Homestead
       end
     end
 
+    # Copy User Files Over to VM
+    if settings.include? 'copy'
+      settings["copy"].each do |file|
+        config.vm.provision "file" do |f|
+          f.source = File.expand_path(file["from"])
+          f.destination = file["to"].chomp('/') + "/" + file["from"].split('/').last
+        end
+      end
+    end
+
     # Register All Of The Configured Shared Folders
     if settings.include? 'folders'
       settings["folders"].each do |folder|
@@ -115,6 +125,8 @@ class Homestead
 
         if (folder["type"] == "nfs")
             mount_opts = folder["mount_options"] ? folder["mount_options"] : ['actimeo=1']
+        elsif (folder["type"] == "smb")
+            mount_opts = folder["mount_options"] ? folder["mount_options"] : ['vers=3.02', 'mfsymlinks']
         end
 
         # For b/w compatibility keep separate 'mount_opts', but merge with options
@@ -133,36 +145,46 @@ class Homestead
     end
 
 
-    settings["sites"].each do |site|
-      type = site["type"] ||= "laravel"
+    if settings.include? 'sites'
+      settings["sites"].each do |site|
+        type = site["type"] ||= "laravel"
 
-      if (site.has_key?("hhvm") && site["hhvm"])
-        type = "hhvm"
-      end
+        if (site.has_key?("hhvm") && site["hhvm"])
+          type = "hhvm"
+        end
 
-      if (type == "symfony2")
-        type = "symfony"
-      end
+        if (type == "symfony")
+          type = "symfony2"
+        end
 
-      config.vm.provision "shell" do |s|
-        s.path = scriptDir + "/serve-#{type}.sh"
-        s.args = [site["map"], site["to"], site["port"] ||= "80", site["ssl"] ||= "443"]
-      end
-
-      # Configure The Cron Schedule
-      if (site.has_key?("schedule"))
         config.vm.provision "shell" do |s|
-          if (site["schedule"])
-            s.path = scriptDir + "/cron-schedule.sh"
-            s.args = [site["map"].tr('^A-Za-z0-9', ''), site["to"]]
-          else
-            s.inline = "rm -f /etc/cron.d/$1"
-            s.args = [site["map"].tr('^A-Za-z0-9', '')]
+          s.path = scriptDir + "/serve-#{type}.sh"
+          s.args = [site["map"], site["to"], site["port"] ||= "80", site["ssl"] ||= "443"]
+        end
+
+        # Configure The Cron Schedule
+        if (site.has_key?("schedule"))
+          config.vm.provision "shell" do |s|
+            if (site["schedule"])
+              s.path = scriptDir + "/cron-schedule.sh"
+              s.args = [site["map"].tr('^A-Za-z0-9', ''), site["to"]]
+            else
+              s.inline = "rm -f /etc/cron.d/$1"
+              s.args = [site["map"].tr('^A-Za-z0-9', '')]
+            end
           end
         end
-      end
 
+      end
     end
+
+    # Install MariaDB If Necessary
+    if settings.has_key?("mariadb") && settings["mariadb"]
+      config.vm.provision "shell" do |s|
+        s.path = scriptDir + "/install-maria.sh"
+      end
+    end
+
 
     # Configure All Of The Configured Databases
     if settings.has_key?("databases")

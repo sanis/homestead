@@ -44,3 +44,15 @@ function serve-symfony() {
         echo "  serve-symfony domain path"
     fi
 }
+
+function serve-proxy() {
+    if [[ "$1" && "$2" ]]
+    then
+        sudo dos2unix /vagrant/scripts/serve-proxy.sh
+        sudo bash /vagrant/scripts/serve-proxy.sh "$1" "$2" 80
+    else
+        echo "Error: missing required parameters."
+        echo "Usage: "
+        echo "  serve-proxy domain port"
+    fi
+}
